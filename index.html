@@ -379,7 +379,7 @@ function renderAmountEditor(){
   const selected=allMembers(false).filter(m=>state.selectedIds.has(m.id));
   Object.keys(state.amounts).forEach(id=>{if(!state.selectedIds.has(id))delete state.amounts[id]});
   if(!selected.length||$('#txType').value!=='Pemasukan'){root.innerHTML='';return}
-  root.innerHTML='<div class="helper-text" style="margin:0 0 8px">Kosongkan untuk bayar penuh (sisa tagihan). Isi nominal lebih kecil kalau dicicil.</div>'+selected.map(m=>`<div class="filter-row" style="grid-template-columns:minmax(0,1fr) 150px;align-items:center"><span style="font-size:12px;font-weight:700">${esc(m.name)} <small style="color:var(--muted)">${esc(m.type)}</small></span><input type="number" min="1" step="500" data-amount-id="${esc(m.id)}" placeholder="Penuh ${esc(money(nominalAnggota(m,category)))}" value="${state.amounts[m.id]||''}"></div>`).join('');
+  root.innerHTML='<div class="helper-text" style="margin:0 0 8px">Kosongkan untuk bayar penuh (sisa tagihan). Isi nominal lebih kecil kalau dicicil.</div>'+selected.map(m=>`<div class="filter-row" style="grid-template-columns:minmax(0,1fr) 150px;align-items:center"><span style="font-size:12px;font-weight:700">${esc(m.name)} <small style="color:var(--muted)">${esc(m.type)}</small></span><input type="number" min="1" step="1" data-amount-id="${esc(m.id)}" placeholder="Penuh ${esc(money(nominalAnggota(m,category)))}" value="${state.amounts[m.id]||''}"></div>`).join('');
   $$('[data-amount-id]',root).forEach(inp=>inp.addEventListener('input',()=>{const v=Number(inp.value);if(v>0)state.amounts[inp.dataset.amountId]=v;else delete state.amounts[inp.dataset.amountId];hitungTotalBayar()}));
   hitungTotalBayar();
 }
