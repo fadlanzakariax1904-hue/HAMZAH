@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0F5A38">
+<title>Pantau pembayaran - HAMZA APP</title>
+<style>
+  :root {
+    --hijau-tua: #0F5A38;
+    --hijau: #168653;
+    --latar: #F3F6F1;
+    --putih: #FFFFFF;
+    --tinta: #14261C;
+    --redup: #566860;
+    --garis: #D9E3DA;
+    --merah: #9E2B25;
+    --kuning: #7A5200;
+    --kuning-latar: #FFF0CC;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--latar);
+    color: var(--tinta);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--hijau); outline-offset: 2px; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .isi { width: min(720px, 100%); margin: 0 auto; padding: 0 18px; }
+
+  /* Kepala halaman */
+  .atas { background: var(--hijau-tua); color: #fff; padding: 26px 0 46px; }
+  .merek { margin: 0 0 6px; font-size: 14px; font-weight: 600; letter-spacing: .02em; opacity: .8; }
+  h1 { margin: 0; font-size: clamp(26px, 6vw, 34px); line-height: 1.15; font-weight: 700; letter-spacing: -.01em; }
+  .sub { margin: 8px 0 0; max-width: 46ch; color: rgba(255,255,255,.84); font-size: 15px; }
+
+  /* Pilihan jenis pembayaran */
+  .tab {
+    display: flex; gap: 4px; margin: -24px 0 16px; padding: 5px;
+    background: var(--putih); border: 1px solid var(--garis); border-radius: 999px;
+  }
+  .tab button {
+    flex: 1; min-height: 44px; padding: 0 10px; border: 0; border-radius: 999px;
+    background: transparent; font-size: 14px; font-weight: 600; color: var(--redup);
+    transition: background-color .15s, color .15s;
+  }
+  .tab button[aria-selected="true"] { background: var(--hijau); color: #fff; }
+
+  /* Panel daftar */
+  .panel { background: var(--putih); border: 1px solid var(--garis); border-radius: 18px; padding: 16px 16px 8px; }
+  .judul-panel { margin: 0; font-size: 18px; font-weight: 700; }
+  .siklus { margin: 2px 0 14px; color: var(--redup); font-size: 14px; }
+
+  .periode {
+    display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px;
+    padding: 6px; background: var(--latar); border-radius: 14px;
+  }
+  .periode button {
+    width: 44px; height: 44px; display: grid; place-items: center;
+    border: 1px solid var(--garis); border-radius: 12px; background: var(--putih);
+  }
+  .periode button:disabled { opacity: .35; cursor: not-allowed; }
+  .periode svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .periode-teks { text-align: center; font-weight: 600; font-size: 15px; line-height: 1.3; }
+  .periode-teks small { display: block; margin-top: 2px; font-weight: 400; color: var(--redup); font-size: 13px; }
+
+  .ringkas { display: flex; align-items: baseline; gap: 8px; margin: 18px 0 12px; }
+  .ringkas strong { font-size: 30px; line-height: 1; font-weight: 700; color: var(--merah); font-variant-numeric: tabular-nums; }
+  .ringkas span { color: var(--redup); }
+
+  .cari { display: block; margin-bottom: 6px; }
+  .cari input {
+    width: 100%; min-height: 48px; padding: 0 14px; border: 1px solid var(--garis);
+    border-radius: 12px; background: var(--putih); font-size: 16px;
+  }
+  .cari input::placeholder { color: #8A998F; }
+  .cari input:focus { border-color: var(--hijau); outline: 3px solid rgba(22,134,83,.22); outline-offset: 0; }
+
+  .grup { margin: 18px 0 0; font-size: 14px; font-weight: 700; color: var(--hijau-tua); }
+  .grup span { font-weight: 400; color: var(--redup); }
+  ul.nama-daftar { list-style: none; margin: 4px 0 0; padding: 0; }
+  ul.nama-daftar li {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--garis);
+  }
+  ul.nama-daftar li:last-child { border-bottom: 0; }
+  .nama { font-weight: 500; overflow-wrap: anywhere; }
+  .kelas { display: block; color: var(--redup); font-size: 13px; font-weight: 400; }
+  .status {
+    flex: none; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    background: var(--kuning-latar); color: var(--kuning);
+  }
+
+  .pesan { margin: 18px 0 14px; padding: 16px; border-radius: 12px; background: var(--latar); color: var(--redup); }
+  .pesan strong { display: block; margin-bottom: 4px; color: var(--tinta); }
+  .pesan button {
+    margin-top: 10px; min-height: 44px; padding: 0 18px; border: 0; border-radius: 12px;
+    background: var(--hijau); color: #fff; font-weight: 600;
+  }
+  .update { margin: 10px 0 8px; color: var(--redup); font-size: 12.5px; }
+
+  .catatan { margin: 16px 2px 40px; color: var(--redup); font-size: 13.5px; max-width: 58ch; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="atas">
+  <div class="isi">
+    <p class="merek">HAMZA APP</p>
+    <h1>Siapa yang belum bayar</h1>
+    <p class="sub">Daftar anggota yang belum membayar untuk periode berjalan.</p>
+  </div>
+</header>
+
+<main class="isi">
+  <div class="tab" role="tablist" aria-label="Jenis pembayaran">
+    <button type="button" role="tab" id="tab-uangkas" data-tab="uangkas" aria-selected="true">Uangkas</button>
+    <button type="button" role="tab" id="tab-putra" data-tab="putra" aria-selected="false">Iuran putra</button>
+    <button type="button" role="tab" id="tab-putri" data-tab="putri" aria-selected="false">Iuran putri</button>
+  </div>
+
+  <section class="panel" aria-labelledby="judulPanel">
+    <h2 class="judul-panel" id="judulPanel">Uangkas Hamzah</h2>
+    <p class="siklus" id="siklus">Dibayar setiap bulan</p>
+
+    <div class="periode">
+      <button type="button" id="prev" aria-label="Periode sebelumnya">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+      <div class="periode-teks" aria-live="polite"><span id="periodeLabel">Memuat</span><small id="periodeNote"></small></div>
+      <button type="button" id="next" aria-label="Periode berikutnya">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <div class="ringkas" id="ringkas" hidden><strong id="jumlah">0</strong><span>orang belum bayar</span></div>
+
+    <label class="cari">
+      <span class="sr">Cari nama</span>
+      <input id="cari" type="search" placeholder="Cari nama Anda" autocomplete="off" enterkeyhint="search">
+    </label>
+
+    <div id="daftar" aria-live="polite"></div>
+    <p class="update" id="update"></p>
+  </section>
+
+  <p class="catatan">
+    Sudah membayar tetapi nama masih tertera? Beri tahu pengurus. Daftar diperbarui otomatis dan bisa tertunda beberapa menit.
+  </p>
+  <noscript><p class="pesan"><strong>JavaScript belum aktif.</strong>Aktifkan JavaScript di browser untuk melihat daftar.</p></noscript>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ================= PENGATURAN ================= */
+  // Alamat Web App Apps Script (berakhiran /exec). Salin dari index.html (Ctrl+F: script.google.com/macros)
+  const API_URL = 'GANTI_DENGAN_URL_WEB_APP_ANDA';
+  // 'lengkap' = Fadlan Zakaria | 'singkat' = Fadlan Z.
+  const NAMA_MODE = 'lengkap';
+  // Berapa periode ke belakang yang boleh dilihat (periode berjalan tidak dihitung)
+  const MAKS_MUNDUR = 2;
+  // Lama data disimpan di browser sebelum diambil ulang (detik)
+  const CACHE_DETIK = 60;
+
+  const TABS = {
+    uangkas: {
+      category: 'Uangkas Hamzah', judul: 'Uangkas Hamzah', siklus: 'Dibayar setiap bulan',
+      saring: () => true,
+      grup: m => m.type === 'Alumni' ? 'Alumni' : 'Santri',
+      tampilKelas: true
+    },
+    putra: {
+      category: 'Iuran Santri', judul: 'Iuran santri putra', siklus: 'Dibayar setiap minggu',
+      saring: m => m.gender === 'Putra',
+      grup: m => m.period || 'Tanpa kelas',
+      tampilKelas: false
+    },
+    putri: {
+      category: 'Iuran Santri', judul: 'Iuran santri putri', siklus: 'Dibayar setiap minggu',
+      saring: m => m.gender === 'Putri',
+      grup: m => m.period || 'Tanpa kelas',
+      tampilKelas: false
+    }
+  };
+
+  const $ = id => document.getElementById(id);
+  const buat = (tag, cls, teks) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (teks != null) n.textContent = teks;
+    return n;
+  };
+  const awalBesar = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+  const state = {
+    tab: 'uangkas',
+    offset: { 'Uangkas Hamzah': 0, 'Iuran Santri': 0 },
+    sekarang: { 'Uangkas Hamzah': '', 'Iuran Santri': '' },   // kunci periode berjalan dari server
+    data: null,
+    memuat: false,
+    galat: ''
+  };
+  const cache = {};
+  let urutan = 0;              // penanda permintaan terbaru (mengabaikan respons usang)
+  let nomorPermintaan = 0;     // nomor unik untuk tiap panggilan ke Apps Script
+
+  /* ================= PENGHUBUNG KE APPS SCRIPT ================= */
+  const menunggu = {};
+  function panggil(payload) {
+    return new Promise((resolve, reject) => {
+      const id = 'pantau-' + Date.now() + '-' + (++nomorPermintaan);
+      const namaFrame = 'jembatan_' + id;
+      const iframe = document.createElement('iframe');
+      iframe.name = namaFrame;
+      iframe.style.display = 'none';
+      iframe.setAttribute('aria-hidden', 'true');
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = API_URL;
+      form.target = namaFrame;
+      form.style.display = 'none';
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'payload';
+      input.value = JSON.stringify(Object.assign({}, payload, { requestId: id, origin: location.origin }));
+      form.appendChild(input);
+
+      const timer = setTimeout(() => { bersihkan(); reject(new Error('waktu habis')); }, 25000);
+      function bersihkan() { clearTimeout(timer); delete menunggu[id]; iframe.remove(); form.remove(); }
+      menunggu[id] = hasil => { bersihkan(); resolve(hasil); };
+
+      document.body.appendChild(iframe);
+      document.body.appendChild(form);
+      form.submit();
+    });
+  }
+  window.addEventListener('message', e => {
+    const d = e.data;
+    if (!d || d.source !== 'HAMZA_APP' || !menunggu[d.requestId]) return;
+    try {
+      const host = new URL(e.origin).hostname;
+      if (!/(^|\.)googleusercontent\.com$/.test(host) && !/(^|\.)google\.com$/.test(host)) return;
+    } catch (err) { return; }
+    menunggu[d.requestId](d.result);
+  });
+
+  /* ================= PERIODE ================= */
+  function geser(kunci, arah) {
+    if (/^\d{4}-\d{2}$/.test(kunci)) {
+      const p = kunci.split('-').map(Number);
+      const t = new Date(Date.UTC(p[0], p[1] - 1 + arah, 1));
+      return t.getUTCFullYear() + '-' + String(t.getUTCMonth() + 1).padStart(2, '0');
+    }
+    const p = kunci.split('-').map(Number);
+    return new Date(Date.UTC(p[0], p[1] - 1, p[2] + 7 * arah)).toISOString().slice(0, 10);
+  }
+  function kunciPeriode(category) {
+    const off = state.offset[category];
+    const skrg = state.sekarang[category];
+    return off === 0 || !skrg ? '' : geser(skrg, off);
+  }
+
+  /* ================= NAMA ================= */
+  function tampilNama(nama) {
+    const kata = String(nama || '').trim().split(/\s+/);
+    if (NAMA_MODE !== 'singkat' || kata.length < 2) return kata.join(' ');
+    return kata[0] + ' ' + kata.slice(1).map(k => k.charAt(0).toUpperCase() + '.').join(' ');
+  }
+
+  /* ================= MUAT DATA ================= */
+  async function muat(paksa) {
+    const t = TABS[state.tab];
+    const category = t.category;
+    const periode = kunciPeriode(category);
+    const kunciCache = category + '|' + state.offset[category];
+    const tersimpan = cache[kunciCache];
+    if (!paksa && tersimpan && Date.now() - tersimpan.waktu < CACHE_DETIK * 1000) {
+      state.data = tersimpan.hasil; state.galat = ''; state.memuat = false; tampil(); return;
+    }
+    if (!/^https:\/\/script\.google\.com\//.test(API_URL)) {
+      state.galat = 'Alamat Apps Script belum diisi di pantau.html.'; state.data = null; state.memuat = false; tampil(); return;
+    }
+    const saya = ++urutan;
+    state.memuat = true; state.galat = ''; state.data = null; tampil();
+    try {
+      const hasil = await panggil({ action: 'getPublicStatus', category: category, billingPeriod: periode });
+      if (saya !== urutan) return;
+      if (!hasil || !hasil.ok) throw new Error((hasil && hasil.message) || 'gagal');
+      state.sekarang[category] = hasil.currentPeriod || state.sekarang[category];
+      cache[kunciCache] = { waktu: Date.now(), hasil: hasil };
+      state.data = hasil; state.memuat = false;
+    } catch (err) {
+      if (saya !== urutan) return;
+      state.memuat = false;
+      state.galat = 'Data belum bisa dimuat. Periksa koneksi internet, lalu tekan Coba lagi.';
+    }
+    tampil();
+  }
+
+  /* ================= TAMPILAN ================= */
+  function tampil() {
+    const t = TABS[state.tab];
+    const category = t.category;
+    const off = state.offset[category];
+
+    $('judulPanel').textContent = t.judul;
+    $('siklus').textContent = t.siklus;
+    document.querySelectorAll('.tab button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === state.tab)));
+
+    $('prev').disabled = off <= -MAKS_MUNDUR || state.memuat || !state.sekarang[category];
+    $('next').disabled = off >= 0 || state.memuat;
+
+    const daftar = $('daftar');
+    daftar.textContent = '';
+    $('update').textContent = '';
+
+    if (state.memuat) {
+      $('periodeLabel').textContent = 'Memuat';
+      $('periodeNote').textContent = '';
+      $('ringkas').hidden = true;
+      daftar.appendChild(buat('p', 'pesan', 'Memuat data...'));
+      return;
+    }
+    if (state.galat || !state.data) {
+      $('periodeLabel').textContent = '-';
+      $('periodeNote').textContent = '';
+      $('ringkas').hidden = true;
+      const kotak = buat('div', 'pesan');
+      kotak.appendChild(buat('strong', null, 'Data tidak tersedia'));
+      kotak.appendChild(document.createTextNode(state.galat || 'Coba lagi beberapa saat.'));
+      const tombol = buat('button', null, 'Coba lagi');
+      tombol.type = 'button';
+      tombol.addEventListener('click', () => muat(true));
+      kotak.appendChild(tombol);
+      daftar.appendChild(kotak);
+      return;
+    }
+
+    const r = state.data;
+    $('periodeLabel').textContent = r.billingPeriodLabel || r.billingPeriod;
+    $('periodeNote').textContent = off === 0 ? 'Periode berjalan' : (off === -1 ? 'Periode lalu' : Math.abs(off) + ' periode lalu');
+
+    const semua = (r.unpaid || []).filter(t.saring);
+    $('jumlah').textContent = semua.length;
+    $('ringkas').hidden = false;
+
+    const kata = $('cari').value.trim().toLowerCase();
+    const tampilkan = kata ? semua.filter(m => String(m.name).toLowerCase().indexOf(kata) !== -1) : semua;
+
+    if (!semua.length) {
+      const kotak = buat('div', 'pesan');
+      kotak.appendChild(buat('strong', null, 'Semua sudah bayar'));
+      kotak.appendChild(document.createTextNode('Tidak ada anggota yang belum membayar untuk periode ini. Alhamdulillah.'));
+      daftar.appendChild(kotak);
+    } else if (!tampilkan.length) {
+      const kotak = buat('div', 'pesan');
+      kotak.appendChild(buat('strong', null, 'Nama tidak ada di daftar belum bayar'));
+      kotak.appendChild(document.createTextNode('Kalau Anda sudah membayar, ini wajar. Periksa juga ejaan nama yang dicari.'));
+      daftar.appendChild(kotak);
+    } else {
+      const grupMap = new Map();
+      tampilkan.forEach(m => {
+        const label = String(t.grup(m));
+        const k = label.toLowerCase();
+        if (!grupMap.has(k)) grupMap.set(k, { label: awalBesar(label), isi: [] });
+        grupMap.get(k).isi.push(m);
+      });
+      Array.from(grupMap.values())
+        .sort((a, b) => a.label.localeCompare(b.label, 'id'))
+        .forEach(g => {
+          const h = buat('h3', 'grup', g.label + ' ');
+          h.appendChild(buat('span', null, '(' + g.isi.length + ')'));
+          daftar.appendChild(h);
+          const ul = buat('ul', 'nama-daftar');
+          g.isi.sort((a, b) => String(a.name).localeCompare(String(b.name), 'id')).forEach(m => {
+            const li = buat('li');
+            const kiri = buat('div');
+            kiri.appendChild(buat('span', 'nama', tampilNama(m.name)));
+            if (t.tampilKelas && m.period) kiri.appendChild(buat('span', 'kelas', awalBesar(m.period)));
+            li.appendChild(kiri);
+            if (m.status && m.status !== 'Belum bayar') li.appendChild(buat('span', 'status', m.status));
+            ul.appendChild(li);
+          });
+          daftar.appendChild(ul);
+        });
+    }
+    if (r.updatedAt) $('update').textContent = 'Diperbarui ' + r.updatedAt;
+  }
+
+  /* ================= INTERAKSI ================= */
+  document.querySelectorAll('.tab button').forEach(b => {
+    b.addEventListener('click', () => {
+      if (state.tab === b.dataset.tab) return;
+      state.tab = b.dataset.tab;
+      $('cari').value = '';
+      muat(false);
+    });
+  });
+  $('prev').addEventListener('click', () => {
+    const c = TABS[state.tab].category;
+    if (state.offset[c] > -MAKS_MUNDUR) { state.offset[c]--; muat(false); }
+  });
+  $('next').addEventListener('click', () => {
+    const c = TABS[state.tab].category;
+    if (state.offset[c] < 0) { state.offset[c]++; muat(false); }
+  });
+  $('cari').addEventListener('input', () => { if (state.data && !state.memuat) tampil(); });
+
+  muat(true);
+})();
+</script>
+</body>
+</html>
