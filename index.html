@@ -33,6 +33,16 @@
     .news-drop{display:grid;place-items:center;height:96px;border:1.5px dashed #bfe0cb;border-radius:16px;background:#f6fbf8;color:var(--primary);font-weight:800;cursor:pointer}
 .news-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.news-prev{position:relative;width:78px;height:78px}.news-prev img{width:100%;height:100%;object-fit:cover;border-radius:12px}.news-prev button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:0;background:#143b2a;color:#fff;font-size:11px}
 .news-item{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid #f0f4f1}.news-item:last-child{border-bottom:0}.news-imgs{width:84px;height:84px;flex:none}.news-imgs img,.news-noimg{width:100%;height:100%;object-fit:cover;border-radius:14px;background:#f2f7f3}.news-noimg{display:grid;place-items:center;font-size:10px;color:var(--muted)}.news-body{min-width:0;flex:1}.news-cap{font-size:12px;margin:5px 0 9px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+  .day-chips{display:flex;flex-wrap:wrap;gap:7px}
+.day-chips button,.day-chips span{border:1px solid #dfe9e2;background:#fbfdfb;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:800;color:#6f8277;cursor:pointer}
+.day-chips button.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.day-chips span{display:inline-flex;align-items:center;gap:7px;color:var(--primary-deep);background:#edf7f0;cursor:default}
+.day-chips span b{cursor:pointer;font-weight:800}
+.sched-item{padding:13px 0;border-bottom:1px solid #f0f4f1}
+.sched-item:last-child{border-bottom:0}
+.sched-item>b{display:block;font-size:14px;margin-top:2px}
+.sched-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    
   </style>
 </head>
 <body>
@@ -165,6 +175,41 @@
 
       <section class="view hidden" id="page-news">
   <div class="page-heading"><div><div class="eyebrow">KONTEN APLIKASI ISLAMI</div><h1>Berita & program</h1><p>Posting seperti Instagram: pilih foto, tulis caption, lalu bagikan.</p></div></div>
+          <div class="segmented" id="newsSeg" style="margin-bottom:16px"><button class="active" type="button" data-seg="news">Postingan</button><button type="button" data-seg="sched">Jadwal ngaji</button></div>
+  <div id="schedPanel" class="hidden">
+    <section class="panel section-panel" style="margin-bottom:16px">
+      <form id="schedForm" novalidate>
+        <input type="hidden" id="schedId">
+        <div class="field"><label for="schedTitle">Nama kegiatan</label><input id="schedTitle" type="text" maxlength="100" placeholder="Contoh: Kajian Kitab Riyadhus Shalihin"></div>
+        <div class="form-grid">
+          <div class="field"><label for="schedCat">Kategori</label><select id="schedCat"><option>Kajian Rutin</option><option>Kajian Khusus</option><option>Dzikir &amp; Doa</option><option>Lainnya</option></select></div>
+          <div class="field"><label for="schedSpeaker">Pemateri</label><input id="schedSpeaker" type="text" maxlength="80" placeholder="Contoh: Ustadz Ahmad"></div>
+        </div>
+        <div class="field"><label>Tipe jadwal</label><div class="segmented" id="schedTypeSeg"><button class="active" type="button" data-type="berulang">Berulang</button><button type="button" data-type="sekali">Sekali tayang</button></div></div>
+        <div id="schedRecur">
+          <div class="field"><label>Hari pelaksanaan</label><div class="day-chips" id="schedDays"></div></div>
+          <div class="form-grid">
+            <div class="field"><label for="schedFrom">Mulai tanggal (opsional)</label><input id="schedFrom" type="date"></div>
+            <div class="field"><label for="schedUntil">Berakhir tanggal (opsional)</label><input id="schedUntil" type="date"></div>
+          </div>
+        </div>
+        <div id="schedOnce" class="hidden">
+          <div class="field"><label for="schedDateAdd">Tanggal pelaksanaan</label>
+            <div style="display:flex;gap:8px"><input id="schedDateAdd" type="date"><button class="btn btn-secondary" id="schedDateBtn" type="button">Tambah</button></div>
+            <div class="day-chips" id="schedDates"></div></div>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label for="schedStart">Jam mulai (WIB)</label><input id="schedStart" type="time"></div>
+          <div class="field"><label for="schedEnd">Jam selesai (WIB)</label><input id="schedEnd" type="time"></div>
+        </div>
+        <div class="field"><label for="schedLoc">Lokasi</label><input id="schedLoc" type="text" maxlength="100" placeholder="Contoh: Masjid"></div>
+        <div class="field"><label for="schedDesc">Keterangan (opsional)</label><textarea id="schedDesc" maxlength="300" placeholder="Contoh: Membawa kitab masing-masing"></textarea></div>
+        <div class="field"><label for="schedStatus">Status</label><select id="schedStatus"><option value="Aktif">Aktif</option><option value="Nonaktif">Nonaktif</option></select></div>
+        <div class="form-actions"><button class="btn btn-ghost hidden" id="schedCancel" type="button">Batal</button><button class="btn btn-primary" id="schedSubmit" type="submit">Simpan jadwal</button></div>
+      </form>
+    </section>
+    <section class="panel"><div class="panel-heading"><h2>Daftar jadwal</h2></div><div id="schedList"></div></section>
+  </div>
   <section class="panel section-panel" style="margin-bottom:16px">
     <form id="newsForm">
       <div class="field"><label>Foto (maksimal 4)</label>
@@ -416,6 +461,80 @@ function renderNewsFeed(list){
 }
 async function loadNews(){if(!$('#newsDate').value)$('#newsDate').value=todayISO();if(state.demo){renderNewsFeed([]);return}try{const r=await api('getNews');if(!r.ok){if(r.auth===false){logoutLocal();toast(r.message,true);return}throw new Error(r.message||'Gagal memuat.')}renderNewsFeed(r.news||[])}catch(e){toast(e.message||'Gagal memuat postingan.',true)}}
 $('#newsForm').addEventListener('submit',async e=>{e.preventDefault();if(state.demo){toast('Mode pratinjau: posting tidak disimpan.',true);return}const caption=$('#newsCaption').value.trim();if(!caption&&!state.newsFiles.length){toast('Isi caption atau pilih foto.',true);return}busy(true,'Mengunggah postingan…');$('#newsSubmit').disabled=true;try{const r=await api('createNews',{category:$('#newsCategory').value,caption,images:state.newsFiles,publisher:$('#newsPublisher').value.trim(),pubDate:$('#newsDate').value});if(!r.ok)throw new Error(r.message||'Gagal memposting.');state.newsFiles=[];renderNewsPreviews();$('#newsForm').reset();$('#newsDate').value=todayISO();renderNewsFeed(r.news||[]);toast(r.message)}catch(err){toast(err.message,true)}finally{busy(false);$('#newsSubmit').disabled=false}});
+    /* ---------- jadwal ngaji ---------- */
+const SD=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const sched={list:[],days:new Set(),dates:[],type:'berulang'};
+function schedRenderDays(){$('#schedDays').innerHTML=[1,2,3,4,5,6,0].map(d=>`<button type="button" data-d="${d}" class="${sched.days.has(d)?'on':''}">${SD[d]}</button>`).join('')}
+function schedRenderDates(){$('#schedDates').innerHTML=sched.dates.map(d=>`<span>${esc(dateLabel(d))}<b data-x="${d}" role="button" aria-label="Hapus tanggal">✕</b></span>`).join('')}
+function schedSetType(t){sched.type=t;$$('#schedTypeSeg button').forEach(b=>b.classList.toggle('active',b.dataset.type===t));$('#schedRecur').classList.toggle('hidden',t!=='berulang');$('#schedOnce').classList.toggle('hidden',t!=='sekali')}
+function schedReset(){$('#schedForm').reset();$('#schedId').value='';sched.days=new Set();sched.dates=[];schedRenderDays();schedRenderDates();schedSetType('berulang');$('#schedSubmit').textContent='Simpan jadwal';$('#schedCancel').classList.add('hidden')}
+function schedWhen(s){
+  if(s.type==='sekali')return s.dates.split(',').filter(Boolean).map(dateLabel).join(', ');
+  return 'Setiap '+s.days.split(',').filter(Boolean).map(n=>SD[+n]).join(', ')+(s.from||s.until?` · ${s.from?dateLabel(s.from):'…'} s/d ${s.until?dateLabel(s.until):'…'}`:'');
+}
+function renderSchedules(list){
+  sched.list=list;
+  $('#schedList').innerHTML=list.length?list.map(s=>`<div class="sched-item">
+    <div class="tx-meta">${esc(s.category)} · ${s.type==='sekali'?'Sekali tayang':'Berulang'} · ${s.status}</div>
+    <b>${esc(s.title)}</b>
+    <div class="tx-meta">${esc(schedWhen(s))} · ${esc(s.start)}–${esc(s.end)} WIB</div>
+    <div class="tx-meta">${esc([s.speaker,s.location].filter(Boolean).join(' · '))}</div>
+    <div class="sched-acts"><button class="btn btn-secondary small-btn" data-sa="edit" data-id="${esc(s.id)}" type="button">Edit</button><button class="btn btn-ghost small-btn" data-sa="tog" data-id="${esc(s.id)}" type="button">${s.status==='Aktif'?'Nonaktifkan':'Aktifkan'}</button><button class="btn btn-danger small-btn" data-sa="del" data-id="${esc(s.id)}" type="button">Hapus</button></div>
+  </div>`).join(''):'<div class="empty-state">Belum ada jadwal. Buat jadwal pertama di atas.</div>';
+}
+async function loadSchedules(){
+  if(state.demo){renderSchedules([]);return}
+  try{const r=await api('getSchedules');if(!r.ok){if(r.auth===false){logoutLocal();toast(r.message,true);return}throw new Error(r.message||'Gagal memuat.')}renderSchedules(r.schedules||[])}
+  catch(err){toast(err.message||'Gagal memuat jadwal.',true)}
+}
+$('#newsSeg').addEventListener('click',e=>{
+  const b=e.target.closest('[data-seg]');if(!b)return;const s=b.dataset.seg==='sched';
+  $$('#newsSeg button').forEach(x=>x.classList.toggle('active',x===b));
+  $('#schedPanel').classList.toggle('hidden',!s);
+  [$('#newsForm'),$('#newsFeed')].forEach(el=>el.closest('section').classList.toggle('hidden',s));
+  if(s)loadSchedules();
+});
+$('#schedTypeSeg').addEventListener('click',e=>{const b=e.target.closest('[data-type]');if(b)schedSetType(b.dataset.type)});
+$('#schedDays').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;const d=+b.dataset.d;sched.days.has(d)?sched.days.delete(d):sched.days.add(d);schedRenderDays()});
+$('#schedDateBtn').addEventListener('click',()=>{const v=$('#schedDateAdd').value;if(!v)return;if(!sched.dates.includes(v)){sched.dates.push(v);sched.dates.sort();schedRenderDates()}$('#schedDateAdd').value=''});
+$('#schedDates').addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;sched.dates=sched.dates.filter(x=>x!==b.dataset.x);schedRenderDates()});
+$('#schedCancel').addEventListener('click',schedReset);
+$('#schedForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(state.demo){toast('Mode pratinjau: jadwal tidak disimpan.',true);return}
+  const t=sched.type,title=$('#schedTitle').value.trim(),start=$('#schedStart').value,end=$('#schedEnd').value,from=$('#schedFrom').value,until=$('#schedUntil').value;
+  if(!title){toast('Nama kegiatan wajib diisi.',true);return}
+  if(!start||!end){toast('Isi jam mulai dan selesai.',true);return}
+  if(end<=start){toast('Jam selesai harus setelah jam mulai.',true);return}
+  if(t==='berulang'&&!sched.days.size){toast('Pilih minimal satu hari.',true);return}
+  if(t==='berulang'&&from&&until&&until<from){toast('Tanggal berakhir tidak boleh sebelum tanggal mulai.',true);return}
+  if(t==='sekali'&&!sched.dates.length){toast('Tambahkan minimal satu tanggal.',true);return}
+  busy(true,'Menyimpan jadwal…');$('#schedSubmit').disabled=true;
+  try{
+    const r=await api('saveSchedule',{id:$('#schedId').value,type:t,title,category:$('#schedCat').value,speaker:$('#schedSpeaker').value.trim(),days:[...sched.days],dates:sched.dates,from,until,start,end,location:$('#schedLoc').value.trim(),description:$('#schedDesc').value.trim(),status:$('#schedStatus').value});
+    if(!r.ok)throw new Error(r.message||'Gagal menyimpan.');
+    schedReset();renderSchedules(r.schedules||[]);toast(r.message);
+  }catch(err){toast(err.message,true)}finally{busy(false);$('#schedSubmit').disabled=false}
+});
+$('#schedList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-sa]');if(!b)return;const s=sched.list.find(x=>x.id===b.dataset.id);if(!s)return;
+  if(b.dataset.sa==='edit'){
+    $('#schedId').value=s.id;$('#schedTitle').value=s.title;$('#schedCat').value=s.category;$('#schedSpeaker').value=s.speaker;
+    sched.days=new Set(s.days?s.days.split(',').map(Number):[]);sched.dates=s.dates?s.dates.split(','):[];
+    $('#schedFrom').value=s.from;$('#schedUntil').value=s.until;$('#schedStart').value=s.start;$('#schedEnd').value=s.end;
+    $('#schedLoc').value=s.location;$('#schedDesc').value=s.description;$('#schedStatus').value=s.status;
+    schedRenderDays();schedRenderDates();schedSetType(s.type);
+    $('#schedSubmit').textContent='Update jadwal';$('#schedCancel').classList.remove('hidden');
+    $('#schedForm').scrollIntoView({behavior:'smooth',block:'start'});return;
+  }
+  if(b.dataset.sa==='del'&&!confirm('Hapus jadwal "'+s.title+'"?'))return;
+  busy(true,'Memperbarui…');
+  try{
+    const r=b.dataset.sa==='del'?await api('deleteSchedule',{id:s.id}):await api('setScheduleStatus',{id:s.id,status:s.status==='Aktif'?'Nonaktif':'Aktif'});
+    if(!r.ok)throw new Error(r.message);renderSchedules(r.schedules||[]);toast(r.message);
+  }catch(err){toast(err.message,true)}finally{busy(false)}
+});
+schedReset();
     function logoutLocal(){state.token='';state.adminName='';state.data=null;state.paymentStatus=null;state.selectedIds.clear();sessionStorage.removeItem('hamzaToken');sessionStorage.removeItem('hamzaAdmin');sessionStorage.removeItem('hamzaDemo');state.demo=!CONFIG.API_URL||CONFIG.API_URL.includes('PASTE_APPS_SCRIPT');$('#adminPassword').value='';showLogin();$('#demoNote').classList.toggle('hidden',!state.demo)}
     $('#logoutButton').addEventListener('click',async()=>{try{if(!state.demo&&state.token)await bridgeRequest('logout',{token:state.token})}catch(e){}logoutLocal();toast('Anda berhasil keluar.')});
 
