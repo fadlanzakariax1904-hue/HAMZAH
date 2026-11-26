@@ -167,6 +167,7 @@
             </div>
           </div><div class="form-actions"><button class="btn btn-primary" type="submit">Simpan anggota</button></div></form>
         </section>
+        <button class="btn btn-secondary" data-go="users" style="margin-bottom:12px">Kelola akun pengguna →</button>
         <section class="panel"><div class="panel-heading"><div><h2>Database anggota</h2><div class="panel-subtitle" id="studentTotalLabel">0 anggota aktif</div></div><div class="search-field" style="max-width:240px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/></svg><input id="studentListSearch" type="search" placeholder="Cari anggota…"></div></div>
           <div class="field" style="max-width:240px"><label for="memberListType">Tampilkan</label><select id="memberListType"><option value="Semua">Semua anggota</option><option value="Santri">Santri</option><option value="Alumni">Alumni</option></select></div>
           <div class="student-list" id="studentCards"></div><div id="studentsEmpty" class="empty-state hidden"><div class="empty-icon">♙</div>Belum ada anggota yang cocok. Tambahkan anggota atau kelola data melalui Google Sheets.</div>
@@ -223,6 +224,13 @@
     </form>
   </section>
   <section class="panel"><div class="panel-heading"><h2>Postingan</h2></div><div id="newsFeed"></div></section>
+</section>
+
+<section class="view hidden" id="page-users">
+  <section class="panel"><div class="panel-heading"><div><h2>Pengguna aplikasi</h2><div class="panel-subtitle" id="userCount">0 menunggu</div></div></div>
+    <div class="form-grid"><select id="userFilter" class="field"><option value="menunggu">Menunggu persetujuan</option><option value="aktif">Aktif</option><option value="ditolak">Ditolak</option><option value="blokir">Diblokir</option><option value="semua">Semua</option></select><input id="userSearch" class="field" placeholder="Cari nama / WhatsApp"></div>
+    <div id="userList"></div><div class="empty-state hidden" id="userEmpty">Tidak ada pengguna.</div>
+  </section>
 </section>
 
       <section class="view hidden" id="page-account">
@@ -535,6 +543,32 @@ $('#schedList').addEventListener('click',async e=>{
   }catch(err){toast(err.message,true)}finally{busy(false)}
 });
 schedReset();
+    /* ===== PENGGUNA (tempel tepat di atas function logoutLocal(){ ) ===== */
+state.users=[];
+const _nav=navigate;navigate=function(v){_nav(v);if(v==='users')loadUsers()};
+const RL={ortu:'Orang tua',santri:'Santri'};
+async function loadUsers(){
+  if(state.demo){state.users=[];renderUsers();return}
+  busy(true,'Memuat pengguna...');
+  try{const r=await api('getUsers');if(!r.ok){if(r.auth===false){logoutLocal();toast(r.message,true);return}throw new Error(r.message||'Gagal memuat.')}state.users=r.users||[];renderUsers()}
+  catch(e){toast(e.message||'Gagal memuat pengguna.',true)}finally{busy(false)}
+}
+function renderUsers(){
+  const f=$('#userFilter').value,q=String($('#userSearch').value||'').toLowerCase();
+  const list=state.users.filter(u=>(f==='semua'||u.status===f)&&(!q||(u.name+' '+u.wa).toLowerCase().includes(q)));
+  $('#userCount').textContent=state.users.filter(u=>u.status==='menunggu').length+' menunggu · '+state.users.length+' total';
+  $('#userList').innerHTML=list.map(u=>`<div class="sched-item"><div class="tx-main"><div class="tx-title">${esc(u.name)} <span class="member-type-badge">${esc(RL[u.role]||u.role)}</span></div><div class="tx-meta">${esc(u.wa)} · ${esc(u.created)} · <b>${esc(u.status)}</b></div></div><div class="sched-acts">${u.status!=='aktif'?`<button class="small-btn" data-u="${esc(u.id)}" data-s="aktif">Setujui</button>`:''}${u.status==='menunggu'?`<button class="small-btn" data-u="${esc(u.id)}" data-s="ditolak">Tolak</button>`:''}${u.status==='aktif'?`<button class="small-btn" data-u="${esc(u.id)}" data-s="blokir">Blokir</button>`:''}<button class="small-btn" data-u="${esc(u.id)}" data-pw="1">Reset PW</button></div></div>`).join('');
+  $('#userEmpty').classList.toggle('hidden',list.length>0);
+}
+$('#userFilter').addEventListener('change',renderUsers);$('#userSearch').addEventListener('input',renderUsers);
+$('#userList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-u]');if(!b)return;const id=b.dataset.u;
+  try{
+    if(b.dataset.pw){const pw=prompt('Password baru untuk pengguna ini (min. 6 karakter):');if(!pw)return;busy(true);const r=await api('resetUserPassword',{id,password:pw});if(!r.ok)throw new Error(r.message);toast('Password diperbarui. Sampaikan ke pengguna.')}
+    else{busy(true);const r=await api('setUserStatus',{id,status:b.dataset.s});if(!r.ok)throw new Error(r.message);const u=state.users.find(x=>x.id===id);if(u)u.status=b.dataset.s;renderUsers();toast('Status diperbarui.')}
+  }catch(x){toast(x.message||'Gagal.',true)}finally{busy(false)}
+});
+
     function logoutLocal(){state.token='';state.adminName='';state.data=null;state.paymentStatus=null;state.selectedIds.clear();sessionStorage.removeItem('hamzaToken');sessionStorage.removeItem('hamzaAdmin');sessionStorage.removeItem('hamzaDemo');state.demo=!CONFIG.API_URL||CONFIG.API_URL.includes('PASTE_APPS_SCRIPT');$('#adminPassword').value='';showLogin();$('#demoNote').classList.toggle('hidden',!state.demo)}
     $('#logoutButton').addEventListener('click',async()=>{try{if(!state.demo&&state.token)await bridgeRequest('logout',{token:state.token})}catch(e){}logoutLocal();toast('Anda berhasil keluar.')});
 
